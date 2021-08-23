@@ -26,14 +26,20 @@ let imageRoutes: SetupFunction = { app, store in
             throw BirdrServiceError.invalidImageType
         }
         let imageStore = ImageStore(data: Data(buffer: data), httpMediaType: type, withName: name)
-        let key = store.set(imageStore)
-        return ImageStore.Return(key: key, storedImage: imageStore)
+        let key = store.set(imageStore, withKey: imageStore.key)
+        guard key == imageStore.key else {
+            throw BirdrServiceError.keyMismatch(
+                keys: (key, imageStore.key),
+                reason: "Attempting to set image with key \(imageStore.key) at \(key)."
+            )
+        }
+        return imageStore.makeReturn(withDifferentKey: key)
     }
-    
+
     /// Shared image getter logic
     let getImage: (Request) throws -> ImageStore = { req in
         guard let key = req.parameters.get(Param.key.rawValue) else {
-            throw BirdrServiceError.imageKeyNotSpecified
+            throw BirdrServiceError.keyNotSpecified(description: "image")
         }
         guard let imageStore: ImageStore = store.get(fromKey: key) else {
             throw BirdrServiceError.imageNotFound(key: key)

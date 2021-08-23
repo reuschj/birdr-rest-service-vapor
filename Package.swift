@@ -15,7 +15,7 @@ let package = Package(
         .package(
             name: "BirdrFoundation",
             url: "https://github.com/reuschj/birdr-foundation-swift.git",
-            from: "0.0.5"
+            from: "0.0.10"
         )
     ],
     targets: [
@@ -25,6 +25,7 @@ let package = Package(
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "BirdrModel", package: "BirdrFoundation"),
                 .product(name: "BirdrServiceModel", package: "BirdrFoundation"),
+                .product(name: "BirdrUserModel", package: "BirdrFoundation"),
                 .target(name: "Store")
             ],
             swiftSettings: [

@@ -5,6 +5,8 @@ private enum Keys: String {
     case name
     case data
     case imageName
+    
+    var vKey: ValidationKey { .string(rawValue) }
 }
 
 // This adds Vapor-specific deps to our image store
@@ -23,19 +25,20 @@ extension ImageStore: Content {
 // This allows us to run validation on an image store
 extension ImageStore: Validatable {
     public static func validations(_ validations: inout Validations) {
-        validations.add(Keys.name.rawValue, as: String.self, is: .ascii, required: false)
-        validations.add(Keys.data.rawValue, as: Data.self, is: .valid, required: true)
+        validations.add(Keys.name.vKey, as: String.self, is: .ascii, required: false)
+        validations.add(Keys.data.vKey, as: Data.self, is: .valid, required: true)
     }
 }
 
 // This customizes how the image store is sent the service return
 // In this case, we encode the content type into the headers and pass the data to the body
 extension ImageStore: ResponseEncodable {
-    public func encodeResponse(for request: Request) -> EventLoopFuture<Response> {
+    public func encodeResponse(for request: Vapor.Request) -> EventLoopFuture<Response> {
         var headers = HTTPHeaders()
         headers.add(name: .contentType, value: self.type)
+        headers.add(name: .contentID, value: self.key)
         if let name = self.name {
-            headers.add(name: Keys.imageName.rawValue, value: self.name)
+            headers.add(name: Keys.imageName.rawValue, value: name)
         }
         return request.eventLoop.makeSucceededFuture(.init(
             status: .ok, headers: headers, body: .init(data: self.data)
