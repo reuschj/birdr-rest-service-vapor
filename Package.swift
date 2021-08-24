@@ -15,7 +15,7 @@ let package = Package(
         .package(
             name: "BirdrFoundation",
             url: "https://github.com/reuschj/birdr-foundation-swift.git",
-            from: "0.0.10"
+            from: "0.0.15"
         )
     ],
     targets: [
