@@ -9,16 +9,30 @@ private enum Keys: String {
     var vKey: ValidationKey { .string(rawValue) }
 }
 
+extension HTTPMediaType {
+    var imageType: ImageType? {
+        ImageType(rawValue: self.description)
+    }
+}
+
 // This adds Vapor-specific deps to our image store
 extension ImageStore: Content {
     public var httpMediaType: HTTPMediaType {
-        let split = type.split(separator: "/")
+        let split = type.rawValue.split(separator: "/")
         guard split.count == 2 else { return .any }
         return HTTPMediaType(type: String(split[0]), subType: String(split[1]))
     }
 
-    public init(data: Data, httpMediaType: HTTPMediaType, withName name: String? = nil) {
-        self.init(data: data, type: httpMediaType.description, withName: name)
+    public init?(
+        data: Data,
+        httpMediaType: HTTPMediaType? = nil,
+        withName name: String? = nil
+    ) {
+        if let imageType = httpMediaType?.imageType {
+            self.init(data: data, type: imageType, withName: name)
+        } else {
+            self.init(data: data, withName: name)
+        }
     }
 }
 
@@ -35,7 +49,7 @@ extension ImageStore: Validatable {
 extension ImageStore: ResponseEncodable {
     public func encodeResponse(for request: Vapor.Request) -> EventLoopFuture<Response> {
         var headers = HTTPHeaders()
-        headers.add(name: .contentType, value: self.type)
+        headers.add(name: .contentType, value: self.type.rawValue)
         headers.add(name: .contentID, value: self.key)
         if let name = self.name {
             headers.add(name: Keys.imageName.rawValue, value: name)
